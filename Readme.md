@@ -15,9 +15,9 @@ After training for 15 epochs, the model achieved:
 ### Performance Visualization
 
 #### Training and Validation Metrics
-![Training Curves]("se_training_curves (1).png")
+![Training Curves](se_training_curves%20(1).png)
 
-![Confusion Matrix]("se_confusion_matrix (1).png")
+![Confusion Matrix](se_confusion_matrix%20(1).png)
 
 
 The confusion matrix shows:
