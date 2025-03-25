@@ -26,6 +26,14 @@ The confusion matrix shows:
 - True Positives (Electron): 37,083
 - False Negatives (Electron): 12,924
 
+Recall Photon 0.7245982295888532
+Recall Electron 0.7415561821345011
+
+Precision Photon: 0.7245982295888532
+Precision Electron: 0.7415561821345011
+
+F1 score Photon: 0.7245982295888532
+F1 score Electron: 0.7415561821345011
 ## Dataset
 
 The model was trained on CERN detector data consisting of:
