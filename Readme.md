@@ -15,9 +15,9 @@ After training for 15 epochs, the model achieved:
 ### Performance Visualization
 
 #### Training and Validation Metrics
-![Training Curves](/Users/aryanchauhan/Downloads/se_confusion_matrix (1).png)
+![Training Curves](se_training_curves (1).png)
 
-![Confusion Matrix](https://pplx-res.cloudinary.com/image/upload/v1742938994/user_uploads/QznYCkVwZSGzVkY/Screeusion)
+![Confusion Matrix](se_confusion_matrix (1).png)
 
 The confusion matrix shows:
 - True Positives (Photon): 35,935
@@ -43,8 +43,8 @@ The model was trained on CERN detector data consisting of:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/electron-photon-classification.git
-cd electron-photon-classification
+git clone https://github.com/aryanchauhan31/GSoC25_E2E_CMS.git
+cd GSoC25_E2E_CMS
 
 # Install dependencies
 pip install -r requirements.txt
