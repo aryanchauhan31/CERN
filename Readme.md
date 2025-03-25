@@ -15,7 +15,7 @@ After training for 15 epochs, the model achieved:
 ### Performance Visualization
 
 #### Training and Validation Metrics
-![Training Curves]('/Users/aryanchauhan/Downloads/se_confusion_matrix (1).png')
+![Training Curves](/Users/aryanchauhan/Downloads/se_confusion_matrix (1).png)
 
 ![Confusion Matrix](https://pplx-res.cloudinary.com/image/upload/v1742938994/user_uploads/QznYCkVwZSGzVkY/Screeusion)
 
