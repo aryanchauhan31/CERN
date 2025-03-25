@@ -12,6 +12,27 @@ import seaborn as sns
 torch.manual_seed(42)
 np.random.seed(42)
 
+def check_h5py_schema(file_path):
+    try:
+        with h5py.File(file_path, 'r') as f:
+            def print_structure(name, obj):
+                print(f"{name}: {type(obj)}")
+                if isinstance(obj, h5py.Dataset):
+                    print(f"  Shape: {obj.shape}, Dtype: {obj.dtype}")
+
+            f.visititems(print_structure)
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Replace 'file_path' with the actual path to your HDF5 file
+file_path = '/content/SingleElectronPt50_IMGCROPS_n249k_RHv1.hdf5'
+check_h5py_schema(file_path)
+
+# file_path = '/content/SinglePhotonPt50_IMGCROPS_n249k_RHv1.hdf5'
+# check_h5py_schema(file_path)
+
 class ParticleDataset(Dataset):
     def __init__(self, file_path, particle_type):
         """
