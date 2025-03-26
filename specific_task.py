@@ -1,5 +1,6 @@
 import torch 
 import torch.nn as nn
+import torch.nn.functional as F
 
 class Resnet18(nn.Module):
   def __init__(self, num_classes=1000):
@@ -47,3 +48,43 @@ class Resnet18(nn.Module):
     x = self.fc(x)
 
     return x
+
+class ResNet18BackBone(nn.Module):
+  def __init__(self):
+    super(ResNet18BackBone, self).__init__()
+    self.fc = nn.Identity()
+
+  def forward(self,x):
+    x = nn.conv1(x)
+    x = nn.bn1(x)
+    x = nn.relu(x)
+    x = nn.maxpool(x)
+
+    x = self.layer1(x)
+    x = self.layer2(x)
+    x = self.layer3(x)
+    x = self.layer4(x)
+
+    x = self.avgpool(x)
+    x = self.flatten(x,1)
+
+    return x
+
+class SimCLR(nn.Module):
+  def __init__(self, feature_dim=128):
+    super(SimCLR, self).__init__()
+  
+    self.encoder = ResNet18BackBone()
+    self.projection_head = nn.Sequential(
+        nn.Linear(512,512),
+        nn.ReLU(inPlace=True),
+        nn.Linear(512,feature_dim)
+    )
+
+  def forward(self,x):
+    h = self.encoder(x)
+    z = self.projection_head(h)
+    return F.normalize(z, dim=1)
+  
+  def get_encoder(self):
+    return self.encoder
