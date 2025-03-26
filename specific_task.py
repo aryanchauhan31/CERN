@@ -23,7 +23,7 @@ class Resnet18(nn.Module):
     layers.append(self._block(in_channels,out_channels, stride))
     for _ in range(1,blocks):
       layers.append(self._block(out_channels,out_channels))
-      return nn.Seequential(*layers)
+      return nn.Sequential(*layers)
     
   def _block(self,in_channels, out_channels, stride=1):
     return nn.Sequential(
