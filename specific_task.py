@@ -88,3 +88,114 @@ class SimCLR(nn.Module):
   
   def get_encoder(self):
     return self.encoder
+
+class NTXentLoss(nn.Module):
+  def __init__(self, temperature=0.5, batch_size=256):
+    super(NTXentLoss, self).__init__()
+    self.temperature = temperature
+    self.batch_size = batch_size
+    self.mask = self._get_mask().cuda()
+    self.criterion = nn.CrossEntropyLoss(reduction='sum')
+    self.similarity_f = nn.CosineSimilarity(dim=2)
+  
+  def _get_mask(self):
+    mask = torch.zeros((2 * self.batch_size, 2 * self.batch_size))
+    for i in range(self.batch_size):
+      mask[i, self.batch_size+i] = 1
+      mask[self.batch_size+i, i] = 1
+    mas = mask.fill_diagonal_(0)
+    return mask
+  
+  def forward(self, z_i, z_j):
+    representations = torch.cat([z_i,z_j],dim=0)
+
+    similarity_matrix = torch.matmul(representations, representations.T)/self.temperature
+    sim_i_j = torch.diag(similarity_matrix, self.batch_size)
+    sim_j_i = torch.diag(similarity_matrix, -self.batch_size)
+
+    positive_pairs = torch.cat([sim_i_j,sim_j_i], dim=0)
+    
+    labels = torch.zeros(2 * self.batch_size).to(positive_pairs.device).long()
+    
+    mask = self.mask.to(similarity_matrix.device)
+    similarity_matrix = similarity_matrix * mask
+
+    logits_max, _ =  torch.max(similarity_matrix, dim=1, keepdim=True)
+    logits = similarity_matrix - logits_max.detach()
+
+    exp_logits = torch.exp(logits)
+    log_prob = logits - torch.log(exp_logits.sum(1, keepdim=True))
+
+    mean_log_prob_pos = (mask * log_prob).sum(1) / mask.sum(1)
+
+    loss = -mean_log_prob_pos.mean()    
+    return loss
+    
+                                      
+from torchvision import transforms
+class SimCLRDataTransform:
+    def __init__(self, size=224):
+        self.transform = transforms.Compose([
+            transforms.RandomResizedCrop(size=size),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomApply([
+                transforms.ColorJitter(0.8, 0.8, 0.8, 0.2)
+            ], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.GaussianBlur(kernel_size=int(0.1 * size)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+    def __call__(self, x):
+      return self.transform(x), self.transform(x)
+
+def train_simclr(model, data_loader, optimizer, epochs=100, temperature=0.5):
+    criterion = NTXentLoss(temperature=temperature, batch_size=data_loader.batch_size)
+    
+    for epoch in range(epochs):
+        model.train()
+        total_loss = 0
+        
+        for images, _ in data_loader:  # Discard labels
+            # Get the two augmented views
+            x_i = images[0].cuda()
+            x_j = images[1].cuda()
+            
+            # Forward pass
+            z_i = model(x_i)
+            z_j = model(x_j)
+            
+            # Compute loss
+            loss = criterion(z_i, z_j)
+            
+            # Backward and optimize
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            
+            total_loss += loss.item()
+        
+        # Print epoch statistics
+        print(f"Epoch [{epoch+1}/{epochs}], Loss: {total_loss/len(data_loader):.4f}")
+    
+    return model
+
+class ClassificationModel(nn.Module):
+    def __init__(self, encoder, num_classes):
+        super(ClassificationModel, self).__init__()
+        self.encoder = encoder
+        self.classifier = nn.Linear(512, num_classes)
+        
+    def forward(self, x):
+        features = self.encoder(x)
+        return self.classifier(features)
+
+class RegressionModel(nn.Module):
+    def __init__(self, encoder, output_dim=1):
+        super(RegressionModel, self).__init__()
+        self.encoder = encoder
+        self.regressor = nn.Linear(512, output_dim)
+        
+    def forward(self, x):
+        features = self.encoder(x)
+        return self.regressor(features)
